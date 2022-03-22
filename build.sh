@@ -981,6 +981,12 @@ if [ "${BUILD_INITRAMFS}" = "1" -o  -n "${IN_KERNEL_MODULES}" ]; then
         INSTALL_MOD_PATH=${MODULES_STAGING_DIR} "${MAKE_ARGS[@]}" modules_install)
 fi
 
+# SS Kbuild
+KL_DIR=${OUT_DIR##*/}
+if [[ "${KL_DIR}" == "msm-kernel" ]] && [[ -n "${KBUILD_EXT_MODULES}" ]]; then 
+  EXT_MODULES=${KBUILD_EXT_MODULES}
+fi
+
 if [[ -z "${SKIP_EXT_MODULES}" ]] && [[ -n "${EXT_MODULES}" ]]; then
   echo "========================================================"
   echo " Building external modules and installing them into staging directory"

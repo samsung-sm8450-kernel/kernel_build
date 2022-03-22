@@ -140,6 +140,13 @@ done
 PATH=${COMMON_OUT_DIR}/host/bin:${PATH}
 LD_LIBRARY_PATH=${COMMON_OUT_DIR}/host/lib:${LD_LIBRARY_PATH}
 
+# SS Kbuild
+if [[ -n "${KBUILD_EXT_MODULES}" ]]; then
+  echo "Set Kbuild toolchain"
+  echo ${KERNEL_LLVM_PATH}
+  PATH=${KERNEL_LLVM_PATH}:${PATH}
+fi
+
 export PATH
 export LD_LIBRARY_PATH
 unset PYTHONPATH
@@ -157,10 +164,16 @@ function check_defconfig() {
     [ "$ARCH" = "x86_64" -o "$ARCH" = "i386" ] && local ARCH=x86
     echo Verifying that savedefconfig matches ${KERNEL_DIR}/arch/${ARCH}/configs/${DEFCONFIG}
     RES=0
-    diff -u ${KERNEL_DIR}/arch/${ARCH}/configs/${DEFCONFIG} ${OUT_DIR}/defconfig >&2 ||
+    diff -uB ${KERNEL_DIR}/arch/${ARCH}/configs/${DEFCONFIG} ${OUT_DIR}/defconfig >&2 ||
       RES=$?
     if [ ${RES} -ne 0 ]; then
-        echo ERROR: savedefconfig does not match ${KERNEL_DIR}/arch/${ARCH}/configs/${DEFCONFIG} >&2
+	echo WARN: savedefconfig does not match ${KERNEL_DIR}/arch/${ARCH}/configs/${DEFCONFIG} check diffconfig to remove re-arranged items >&2
+	RES=0
+	${KERNEL_DIR}/scripts/diffconfig ${KERNEL_DIR}/arch/${ARCH}/configs/${DEFCONFIG} ${OUT_DIR}/defconfig >&2 ||
+	  RES=$?
+	if [ ${RES} -ne 0 ]; then
+	    echo ERROR: savedefconfig does not match ${KERNEL_DIR}/arch/${ARCH}/configs/${DEFCONFIG} >&2
+        fi
     fi
     return ${RES}
 }
